@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "Hd/Oe/CjGAA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\DanielsFega\\windows-dynamic-halo\\WindowsDynamicHalo.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\DanielsFega\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.19041.54\\microsoft.windows.sdk.net.ref.10.0.19041.54.nupkg.sha512"
+  ],
+  "logs": []
+}
