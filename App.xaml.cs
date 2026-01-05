@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace WinDynamicIsland
+namespace WindowsDynamicHalo
 {
     public partial class App : Application
     {

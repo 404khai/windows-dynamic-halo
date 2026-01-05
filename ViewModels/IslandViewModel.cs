@@ -2,10 +2,10 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using WinDynamicIsland.Core;
-using WinDynamicIsland.Sources;
+using WindowsDynamicHalo.Core;
+using WindowsDynamicHalo.Sources;
 
-namespace WinDynamicIsland.ViewModels
+namespace WindowsDynamicHalo.ViewModels
 {
     public class IslandViewModel : INotifyPropertyChanged
     {

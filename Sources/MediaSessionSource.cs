@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.Media.Control;
 
-namespace WinDynamicIsland.Sources
+namespace WindowsDynamicHalo.Sources
 {
     public class MediaInfo
     {

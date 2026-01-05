@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace WinDynamicIsland.UI
+namespace WindowsDynamicHalo.UI
 {
     public partial class IslandWindow : Window
     {

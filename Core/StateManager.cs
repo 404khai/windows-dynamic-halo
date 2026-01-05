@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace WinDynamicIsland.Core
+namespace WindowsDynamicHalo.Core
 {
     public class StateManager : INotifyPropertyChanged
     {

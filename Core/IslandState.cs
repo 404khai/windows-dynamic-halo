@@ -1,4 +1,4 @@
-namespace WinDynamicIsland.Core
+namespace WindowsDynamicHalo.Core
 {
     public enum IslandMode
     {
