@@ -1,0 +1,2 @@
+to activate Dynamic Halo, run this command:
+dotnet run --project WindowsDynamicHalo.csproj
