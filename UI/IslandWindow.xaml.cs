@@ -44,22 +44,68 @@ namespace WindowsDynamicHalo.UI
             if (e.NewValue is IslandViewModel newVm)
             {
                 newVm.PropertyChanged += OnVmPropertyChanged;
+                // Sync initial state
+                this.Width = newVm.Width;
+                this.Height = newVm.Height;
+                UpdateVisualState(newVm);
             }
         }
 
         private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (sender is IslandViewModel vm && (e.PropertyName == nameof(IslandViewModel.IsExpanded) || e.PropertyName == nameof(IslandViewModel.HasMedia) || e.PropertyName == nameof(IslandViewModel.Width) || e.PropertyName == nameof(IslandViewModel.Height)))
+            if (sender is IslandViewModel vm)
             {
-                var toW = vm.Width;
-                var toH = vm.Height;
-                var sb = IslandAnimator.CreateResizeStoryboard(this, this.ActualWidth, this.ActualHeight, toW, toH);
-                sb.Begin(this);
+                if (e.PropertyName == nameof(IslandViewModel.Width) || e.PropertyName == nameof(IslandViewModel.Height))
+                {
+                    // Animate Window Size
+                    var sb = IslandAnimator.CreateResizeStoryboard(this, this.ActualWidth, this.ActualHeight, vm.Width, vm.Height);
+                    sb.Begin(this);
+                }
+                else if (e.PropertyName == nameof(IslandViewModel.IsExpanded) || e.PropertyName == nameof(IslandViewModel.HasMedia))
+                {
+                    // Animate Content
+                    UpdateVisualState(vm);
+                }
+            }
+        }
 
-                var borderSb = vm.IsExpanded || vm.HasMedia
-                    ? IslandAnimator.CreateExpandStoryboard(RootBorder, RootBorder.ActualWidth, RootBorder.ActualWidth)
-                    : IslandAnimator.CreateCollapseStoryboard(RootBorder, RootBorder.ActualWidth, RootBorder.ActualWidth);
-                borderSb.Begin(RootBorder);
+        private void UpdateVisualState(IslandViewModel vm)
+        {
+            if (vm.HasMedia)
+            {
+                if (vm.IsExpanded)
+                {
+                    // Go to Expanded
+                    TransitionToState(ExpandedState, CompactState);
+                }
+                else
+                {
+                    // Go to Compact
+                    TransitionToState(CompactState, ExpandedState);
+                }
+            }
+            else
+            {
+                // Go to Idle
+                TransitionToState(null, CompactState); // Hide Compact
+                TransitionToState(null, ExpandedState); // Hide Expanded
+            }
+        }
+
+        private void TransitionToState(FrameworkElement? show, FrameworkElement? hide)
+        {
+            if (hide != null && hide.Visibility == Visibility.Visible)
+            {
+                var sb = IslandAnimator.CreateFadeStoryboard(hide, 1, 0, 150);
+                sb.Completed += (s, e) => hide.Visibility = Visibility.Collapsed;
+                sb.Begin(hide);
+            }
+
+            if (show != null)
+            {
+                show.Visibility = Visibility.Visible;
+                var sb = IslandAnimator.CreateFadeStoryboard(show, 0, 1, 250, 50); // Slight delay for pop-in
+                sb.Begin(show);
             }
         }
 

@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         Title="Dynamic Island"
         Height="35" 
-        Width="70"
+        Width="80"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -21,8 +21,48 @@
         <vm:IslandViewModel />
     </Window.DataContext>
 
+    <Window.Resources>
+        <!-- Pink Slider Style -->
+        <Style x:Key="PinkSliderStyle" TargetType="Slider">
+            <Setter Property="Background" Value="#333"/>
+            <Setter Property="Foreground" Value="#FF2D55"/> <!-- iOS Pink/Red -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Track x:Name="PART_Track" Grid.Row="1">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.DecreaseLarge}" Background="{TemplateBinding Foreground}" Height="4" BorderThickness="0" Template="{DynamicResource SliderRepeatButtonTemplate}"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.IncreaseLarge}" Background="{TemplateBinding Background}" Height="4" BorderThickness="0" Template="{DynamicResource SliderRepeatButtonTemplate}"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="12" Height="12" Background="{TemplateBinding Foreground}" Template="{DynamicResource SliderThumbTemplate}"/>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <ControlTemplate x:Key="SliderRepeatButtonTemplate" TargetType="RepeatButton">
+            <Border Background="{TemplateBinding Background}" Height="4" CornerRadius="2"/>
+        </ControlTemplate>
+        <ControlTemplate x:Key="SliderThumbTemplate" TargetType="Thumb">
+            <Grid>
+                <Ellipse Fill="{TemplateBinding Background}" Width="12" Height="12"/>
+            </Grid>
+        </ControlTemplate>
+    </Window.Resources>
+
     <Border x:Name="RootBorder" Background="Black" 
-            CornerRadius="17"
+            CornerRadius="24"
             HorizontalAlignment="Stretch" 
             VerticalAlignment="Stretch"
             RenderTransformOrigin="0.5,0.5">
@@ -31,108 +71,104 @@
         </Border.RenderTransform>
 
         <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
             <!-- Background Click Target (Toggle Expand) -->
-            <Button Grid.Row="0" Grid.RowSpan="2"
-                    Command="{Binding ToggleExpandCommand}"
+            <Button Command="{Binding ToggleExpandCommand}"
                     Background="Transparent" BorderThickness="0"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                    Opacity="0"/>
+                    Opacity="0" Panel.ZIndex="0"/>
 
-            <!-- Media State (Compact View) -->
-            <Grid Grid.Row="0" Visibility="{Binding HasMedia, Converter={StaticResource BoolToVis}}" VerticalAlignment="Center">
+            <!-- Compact Media State -->
+            <Grid x:Name="CompactState" VerticalAlignment="Center" IsHitTestVisible="False"
+                  Opacity="0" Visibility="Collapsed">
+                
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/> <!-- Art -->
+                    <ColumnDefinition Width="*"/>    <!-- Text -->
+                    <ColumnDefinition Width="Auto"/> <!-- Controls -->
+                    <ColumnDefinition Width="Auto"/> <!-- Vis -->
                 </Grid.ColumnDefinitions>
                 
-                <!-- Album Art with fade/scale on change -->
-                <Grid Margin="12,0,0,0" VerticalAlignment="Center">
-                    <Border Width="36" Height="36" CornerRadius="6" Background="#222">
-                        <Border.Effect>
-                            <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="#55000000"/>
-                        </Border.Effect>
-                        <Image x:Name="AlbumArt"
-                               Source="{Binding Media.AlbumArt}"
-                               Stretch="UniformToFill"
-                               ClipToBounds="True"/>
-                    </Border>
-                    <Grid.Triggers>
-                        <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimation Storyboard.TargetName="AlbumArt"
-                                                     Storyboard.TargetProperty="Opacity"
-                                                     From="0" To="1"
-                                                     Duration="0:0:0.20">
-                                        <DoubleAnimation.EasingFunction>
-                                            <QuadraticEase EasingMode="EaseOut"/>
-                                        </DoubleAnimation.EasingFunction>
-                                    </DoubleAnimation>
-                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                                                     Storyboard.TargetName="AlbumArt"
-                                                     From="0.94" To="1.0"
-                                                     Duration="0:0:0.20">
-                                        <DoubleAnimation.EasingFunction>
-                                            <CubicEase EasingMode="EaseOut"/>
-                                        </DoubleAnimation.EasingFunction>
-                                    </DoubleAnimation>
-                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
-                                                     Storyboard.TargetName="AlbumArt"
-                                                     From="0.94" To="1.0"
-                                                     Duration="0:0:0.20">
-                                        <DoubleAnimation.EasingFunction>
-                                            <CubicEase EasingMode="EaseOut"/>
-                                        </DoubleAnimation.EasingFunction>
-                                    </DoubleAnimation>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Grid.Triggers>
-                    <Grid.RenderTransform>
-                        <ScaleTransform/>
-                    </Grid.RenderTransform>
-                </Grid>
+                <!-- Small Album Art -->
+                <Border Margin="6,0,0,0" Width="36" Height="36" CornerRadius="18" Background="#222">
+                     <Image Source="{Binding Media.AlbumArt}" Stretch="UniformToFill" ClipToBounds="True"/>
+                </Border>
 
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0" IsHitTestVisible="False"
-                            Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
-                    <TextBlock Text="{Binding Title}" Foreground="White" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                <!-- Text -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                    <TextBlock Text="{Binding Title}" Foreground="White" FontWeight="Bold" FontSize="12" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="{Binding Artist}" Foreground="#AAAAAA" FontSize="11" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
-                
-                <!-- Controls + Visualizer -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,15,0" VerticalAlignment="Center">
-                    <uc:MediaControls Margin="0,0,8,0" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}"/>
-                    <uc:Visualizer IsActive="{Binding Media.IsPlaying}"/>
-                </StackPanel>
+
+                <!-- Controls -->
+                <uc:MediaControls Grid.Column="2" VerticalAlignment="Center" Margin="0,0,8,0"/>
+
+                <!-- Visualizer -->
+                <uc:Visualizer Grid.Column="3" IsActive="{Binding Media.IsPlaying}" Margin="0,0,15,0"/>
             </Grid>
             
-            <!-- Expanded State: Seek Slider -->
-            <Grid Grid.Row="1" Margin="20,0,20,15" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+            <!-- Expanded Media State -->
+            <Grid x:Name="ExpandedState" Margin="15" Opacity="0" Visibility="Collapsed">
                  <Grid.ColumnDefinitions>
-                     <ColumnDefinition Width="Auto"/>
-                     <ColumnDefinition Width="*"/>
-                     <ColumnDefinition Width="Auto"/>
+                     <ColumnDefinition Width="Auto"/> <!-- Large Art -->
+                     <ColumnDefinition Width="*"/>    <!-- Content -->
                  </Grid.ColumnDefinitions>
                  
-                 <TextBlock Text="{Binding Media.Position, StringFormat={}{0:mm\\:ss}}" Foreground="#888" FontSize="10" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                 
-                 <Slider Grid.Column="1"
-                         Minimum="0" 
-                         Maximum="{Binding Media.TotalDurationSeconds, Mode=OneWay}" 
-                         Value="{Binding Media.CurrentPositionSeconds, Mode=TwoWay}"
-                         Thumb.DragStarted="OnSliderDragStarted"
-                         Thumb.DragCompleted="OnSliderDragCompleted"
-                         VerticalAlignment="Center"
-                         IsMoveToPointEnabled="True"
-                         Margin="0,0,0,0"/>
+                 <!-- Large Album Art -->
+                 <Border Grid.Column="0" Width="100" Height="100" CornerRadius="12" Background="#222" VerticalAlignment="Top" Margin="0,10,0,0">
+                      <Border.Effect>
+                          <DropShadowEffect ShadowDepth="4" BlurRadius="20" Opacity="0.4"/>
+                      </Border.Effect>
+                      <Image Source="{Binding Media.AlbumArt}" Stretch="UniformToFill" ClipToBounds="True"/>
+                 </Border>
 
-                 <TextBlock Grid.Column="2" Text="{Binding Media.Duration, StringFormat={}{0:mm\\:ss}}" Foreground="#888" FontSize="10" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                 <!-- Content Right -->
+                 <Grid Grid.Column="1" Margin="15,5,0,0">
+                     <Grid.RowDefinitions>
+                         <RowDefinition Height="Auto"/> <!-- Top: Info + Vis -->
+                         <RowDefinition Height="*"/>    <!-- Middle: Slider -->
+                         <RowDefinition Height="Auto"/> <!-- Bottom: Controls -->
+                     </Grid.RowDefinitions>
+
+                     <!-- Top Row -->
+                     <Grid Grid.Row="0">
+                         <Grid.ColumnDefinitions>
+                             <ColumnDefinition Width="*"/>
+                             <ColumnDefinition Width="Auto"/>
+                         </Grid.ColumnDefinitions>
+                         <StackPanel VerticalAlignment="Center">
+                             <TextBlock Text="{Binding Title}" Foreground="White" FontWeight="Bold" FontSize="16" TextTrimming="CharacterEllipsis"/>
+                             <TextBlock Text="{Binding Artist}" Foreground="#AAAAAA" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                         </StackPanel>
+                         <uc:Visualizer Grid.Column="1" IsActive="{Binding Media.IsPlaying}" VerticalAlignment="Center"/>
+                     </Grid>
+
+                     <!-- Seek Slider -->
+                     <Grid Grid.Row="1" VerticalAlignment="Center">
+                         <Grid.ColumnDefinitions>
+                             <ColumnDefinition Width="Auto"/>
+                             <ColumnDefinition Width="*"/>
+                             <ColumnDefinition Width="Auto"/>
+                         </Grid.ColumnDefinitions>
+                         
+                         <TextBlock Text="{Binding Media.Position, StringFormat={}{0:mm\\:ss}}" Foreground="#888" FontSize="10" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                         
+                         <Slider Grid.Column="1"
+                                 Style="{StaticResource PinkSliderStyle}"
+                                 Minimum="0" 
+                                 Maximum="{Binding Media.TotalDurationSeconds, Mode=OneWay}" 
+                                 Value="{Binding Media.CurrentPositionSeconds, Mode=TwoWay}"
+                                 Thumb.DragStarted="OnSliderDragStarted"
+                                 Thumb.DragCompleted="OnSliderDragCompleted"
+                                 IsMoveToPointEnabled="True"/>
+
+                         <TextBlock Grid.Column="2" Text="{Binding Media.Duration, StringFormat={}{0:mm\\:ss}}" Foreground="#888" FontSize="10" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                     </Grid>
+
+                     <!-- Bottom Controls -->
+                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,5">
+                         <uc:MediaControls/>
+                     </StackPanel>
+                 </Grid>
             </Grid>
         </Grid>
     </Border>
