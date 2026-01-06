@@ -3,7 +3,8 @@ namespace WindowsDynamicHalo.Core
     public enum IslandMode
     {
         Idle,
-        MediaPlaying
+        CompactMedia,  // Width 100, Shows everything horizontally
+        ExpandedMedia  // Height increases, shows seek slider
     }
 
     public class IslandState

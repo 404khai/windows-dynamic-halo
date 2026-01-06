@@ -17,7 +17,7 @@ namespace WindowsDynamicHalo.ViewModels
         private string _artist = "";
         private bool _hasMedia = false;
         private bool _isExpanded = false;
-        private double _width = 120; // Collapsed width
+        private double _width = 70; // Collapsed width
         private double _height = 35; // Collapsed height
 
         public IslandViewModel()
@@ -32,8 +32,11 @@ namespace WindowsDynamicHalo.ViewModels
 
             ToggleExpandCommand = new DelegateCommand(() =>
             {
-                IsExpanded = !IsExpanded;
-                Touch();
+                if (HasMedia)
+                {
+                    IsExpanded = !IsExpanded;
+                    Touch();
+                }
             });
 
             _autoCollapseTimer = new DispatcherTimer
@@ -103,15 +106,27 @@ namespace WindowsDynamicHalo.ViewModels
 
         private void UpdateDimensions()
         {
-            if (HasMedia || IsExpanded)
+            if (HasMedia)
             {
-                Width = 350; // Expanded for media
-                Height = 80;
-                StateManager.Instance.SetMode(IslandMode.MediaPlaying);
+                if (IsExpanded)
+                {
+                    // Expanded Media State (Full Card)
+                    Width = 350;
+                    Height = 160; 
+                    StateManager.Instance.SetMode(IslandMode.ExpandedMedia);
+                }
+                else
+                {
+                    // Compact Media State (Pill with content)
+                    Width = 120;
+                    Height = 35; 
+                    StateManager.Instance.SetMode(IslandMode.CompactMedia);
+                }
             }
             else
             {
-                Width = 120; // Compact pill
+                // Idle State (Small Pill)
+                Width = 70; 
                 Height = 35;
                 StateManager.Instance.SetMode(IslandMode.Idle);
             }
@@ -131,9 +146,19 @@ namespace WindowsDynamicHalo.ViewModels
                 }
                 else
                 {
-                    Title = "Idle";
-                    Artist = "";
-                    HasMedia = false;
+                    // Keep media state if paused, but clear if stopped/closed logic could go here
+                    // For now, we trust the session. 
+                    // If session is cleared, we go idle.
+                    // If just paused, we stay in media mode but show pause icon.
+                    Title = e.Title;
+                    Artist = e.Artist;
+                    HasMedia = !string.IsNullOrEmpty(e.Title); // Only true if we actually have a track
+                    
+                    if (!HasMedia)
+                    {
+                         Title = "Idle";
+                         Artist = "";
+                    }
                 }
             });
         }

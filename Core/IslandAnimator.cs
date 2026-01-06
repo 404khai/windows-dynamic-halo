@@ -8,6 +8,57 @@ namespace WindowsDynamicHalo.Core
     // Uses RenderTransform (Scale) to avoid layout thrashing and DoubleAnimation on Width for card growth.
     public static class IslandAnimator
     {
+        public static Storyboard CreateResizeStoryboard(FrameworkElement target, double fromWidth, double fromHeight, double toWidth, double toHeight, double durationMs = 220)
+        {
+            EnsureScaleTransform(target);
+            var sb = new Storyboard();
+
+            var wAnim = new DoubleAnimation
+            {
+                From = fromWidth,
+                To = toWidth,
+                Duration = TimeSpanFromMs(durationMs),
+                EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(wAnim, target);
+            Storyboard.SetTargetProperty(wAnim, new PropertyPath(FrameworkElement.WidthProperty));
+            sb.Children.Add(wAnim);
+
+            var hAnim = new DoubleAnimation
+            {
+                From = fromHeight,
+                To = toHeight,
+                Duration = TimeSpanFromMs(durationMs),
+                EasingFunction = new QuinticEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(hAnim, target);
+            Storyboard.SetTargetProperty(hAnim, new PropertyPath(FrameworkElement.HeightProperty));
+            sb.Children.Add(hAnim);
+
+            var scaleX = new DoubleAnimation
+            {
+                From = 0.96,
+                To = 1.0,
+                Duration = TimeSpanFromMs(durationMs),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            var scaleY = new DoubleAnimation
+            {
+                From = 0.96,
+                To = 1.0,
+                Duration = TimeSpanFromMs(durationMs),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(scaleX, target);
+            Storyboard.SetTarget(scaleY, target);
+            Storyboard.SetTargetProperty(scaleX, new PropertyPath("(UIElement.RenderTransform).(ScaleTransform.ScaleX)"));
+            Storyboard.SetTargetProperty(scaleY, new PropertyPath("(UIElement.RenderTransform).(ScaleTransform.ScaleY)"));
+            sb.Children.Add(scaleX);
+            sb.Children.Add(scaleY);
+
+            return sb;
+        }
+
         public static Storyboard CreateExpandStoryboard(FrameworkElement target, double fromWidth, double toWidth, double durationMs = 220)
         {
             EnsureScaleTransform(target);
@@ -102,4 +153,3 @@ namespace WindowsDynamicHalo.Core
         }
     }
 }
-

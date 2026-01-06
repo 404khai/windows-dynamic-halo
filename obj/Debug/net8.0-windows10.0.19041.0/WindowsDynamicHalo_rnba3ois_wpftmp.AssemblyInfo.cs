@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WindowsDynamicHalo")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+58af0299e1f8d0b96324da4533edc44608b3053b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dc3600ecb063229c87724b050bc4b79b6216d567")]
 [assembly: System.Reflection.AssemblyProductAttribute("WindowsDynamicHalo")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WindowsDynamicHalo")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

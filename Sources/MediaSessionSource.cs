@@ -14,6 +14,9 @@ namespace WindowsDynamicHalo.Sources
         public string Artist { get; set; } = string.Empty;
         public bool IsPlaying { get; set; }
         public byte[]? AlbumArtBytes { get; set; }
+        public TimeSpan Duration { get; set; } = TimeSpan.Zero;
+        public TimeSpan Position { get; set; } = TimeSpan.Zero;
+        public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
     }
 
     public class MediaSessionSource
@@ -54,6 +57,7 @@ namespace WindowsDynamicHalo.Sources
             {
                 _currentSession.MediaPropertiesChanged -= OnMediaPropertiesChanged;
                 _currentSession.PlaybackInfoChanged -= OnPlaybackInfoChanged;
+                _currentSession.TimelinePropertiesChanged -= OnTimelinePropertiesChanged;
             }
 
             _currentSession = session;
@@ -63,6 +67,7 @@ namespace WindowsDynamicHalo.Sources
                 // Subscribe to new session events
                 _currentSession.MediaPropertiesChanged += OnMediaPropertiesChanged;
                 _currentSession.PlaybackInfoChanged += OnPlaybackInfoChanged;
+                _currentSession.TimelinePropertiesChanged += OnTimelinePropertiesChanged;
                 
                 // Initial update
                 _ = UpdateMediaInfoAsync();
@@ -84,6 +89,11 @@ namespace WindowsDynamicHalo.Sources
              _ = UpdateMediaInfoAsync();
         }
 
+        private void OnTimelinePropertiesChanged(GlobalSystemMediaTransportControlsSession sender, TimelinePropertiesChangedEventArgs args)
+        {
+             _ = UpdateMediaInfoAsync();
+        }
+
         private async Task UpdateMediaInfoAsync()
         {
             if (_currentSession == null) return;
@@ -92,6 +102,7 @@ namespace WindowsDynamicHalo.Sources
             {
                 var info = _currentSession.GetPlaybackInfo();
                 var props = await _currentSession.TryGetMediaPropertiesAsync();
+                var timeline = _currentSession.GetTimelineProperties();
 
                 bool isPlaying = info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
 
@@ -120,7 +131,10 @@ namespace WindowsDynamicHalo.Sources
                         Title = props.Title,
                         Artist = props.Artist,
                         IsPlaying = isPlaying,
-                        AlbumArtBytes = artBytes
+                        AlbumArtBytes = artBytes,
+                        Duration = timeline.EndTime,
+                        Position = timeline.Position,
+                        LastUpdated = DateTime.UtcNow
                     });
                 }
             }
@@ -143,6 +157,14 @@ namespace WindowsDynamicHalo.Sources
             if (_currentSession != null)
             {
                 try { await _currentSession.TryPauseAsync(); } catch (Exception ex) { Debug.WriteLine($"TryPauseAsync failed: {ex.Message}"); }
+            }
+        }
+
+        public async Task TrySeekAsync(TimeSpan position)
+        {
+            if (_currentSession != null)
+            {
+                try { await _currentSession.TryChangePlaybackPositionAsync(position.Ticks); } catch (Exception ex) { Debug.WriteLine($"TrySeekAsync failed: {ex.Message}"); }
             }
         }
     }

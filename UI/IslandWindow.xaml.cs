@@ -17,6 +17,8 @@ namespace WindowsDynamicHalo.UI
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // Ensure initial position is correct
+            UpdateLayout();
             UpdatePosition();
         }
 
@@ -47,18 +49,37 @@ namespace WindowsDynamicHalo.UI
 
         private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (sender is IslandViewModel vm && (e.PropertyName == nameof(IslandViewModel.IsExpanded) || e.PropertyName == nameof(IslandViewModel.HasMedia)))
+            if (sender is IslandViewModel vm && (e.PropertyName == nameof(IslandViewModel.IsExpanded) || e.PropertyName == nameof(IslandViewModel.HasMedia) || e.PropertyName == nameof(IslandViewModel.Width) || e.PropertyName == nameof(IslandViewModel.Height)))
             {
-                var targetWidth = vm.IsExpanded || vm.HasMedia ? 350 : 120;
-                var sb = vm.IsExpanded || vm.HasMedia
-                    ? IslandAnimator.CreateExpandStoryboard(this, this.ActualWidth, targetWidth)
-                    : IslandAnimator.CreateCollapseStoryboard(this, this.ActualWidth, targetWidth);
+                var toW = vm.Width;
+                var toH = vm.Height;
+                var sb = IslandAnimator.CreateResizeStoryboard(this, this.ActualWidth, this.ActualHeight, toW, toH);
                 sb.Begin(this);
 
                 var borderSb = vm.IsExpanded || vm.HasMedia
                     ? IslandAnimator.CreateExpandStoryboard(RootBorder, RootBorder.ActualWidth, RootBorder.ActualWidth)
                     : IslandAnimator.CreateCollapseStoryboard(RootBorder, RootBorder.ActualWidth, RootBorder.ActualWidth);
                 borderSb.Begin(RootBorder);
+            }
+        }
+
+        private void OnSliderDragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e)
+        {
+            if (DataContext is IslandViewModel vm)
+            {
+                vm.Media.IsDragging = true;
+            }
+        }
+
+        private void OnSliderDragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            if (DataContext is IslandViewModel vm)
+            {
+                vm.Media.IsDragging = false;
+                if (sender is System.Windows.Controls.Slider slider)
+                {
+                    vm.Media.CurrentPositionSeconds = slider.Value;
+                }
             }
         }
     }
