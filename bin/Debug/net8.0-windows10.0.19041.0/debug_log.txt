@@ -1,0 +1,36 @@
+2026-01-06 20:15:32.226: MediaSessionSource: Requesting SessionManager...
+2026-01-06 20:15:32.367: MediaSessionSource: SessionManager acquired.
+2026-01-06 20:15:32.421: MediaSessionSource: Updating Session -> Chrome
+2026-01-06 20:15:34.437: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:15:34.448: MediaSessionSource: No active session.
+2026-01-06 20:15:39.362: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:15:39.363: MediaSessionSource: Updating Session -> Chrome
+2026-01-06 20:15:44.183: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:15:44.184: MediaSessionSource: No active session.
+2026-01-06 20:15:44.269: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:15:44.270: MediaSessionSource: No active session.
+2026-01-06 20:15:46.395: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:15:46.397: MediaSessionSource: Updating Session -> Chrome
+2026-01-06 20:15:50.876: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:15:50.876: MediaSessionSource: No active session.
+2026-01-06 20:15:50.877: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:15:50.877: MediaSessionSource: No active session.
+2026-01-06 20:15:51.152: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:15:51.153: MediaSessionSource: Updating Session -> Chrome
+2026-01-06 20:17:00.341: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:17:00.341: MediaSessionSource: No active session.
+2026-01-06 20:17:43.309: MediaSessionSource: Requesting SessionManager...
+2026-01-06 20:17:43.450: MediaSessionSource: SessionManager acquired.
+2026-01-06 20:17:43.499: MediaSessionSource: No active session.
+2026-01-06 20:18:38.144: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:18:38.146: MediaSessionSource: Updating Session -> Chrome
+2026-01-06 20:19:26.487: MediaSessionSource: Requesting SessionManager...
+2026-01-06 20:19:26.612: MediaSessionSource: SessionManager acquired.
+2026-01-06 20:19:26.658: MediaSessionSource: Updating Session -> Chrome
+2026-01-06 20:23:26.619: MediaSessionSource: Requesting SessionManager...
+2026-01-06 20:23:26.842: MediaSessionSource: SessionManager acquired.
+2026-01-06 20:23:26.868: MediaSessionSource: Updating Session -> Chrome
+2026-01-06 20:25:14.941: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:25:14.946: MediaSessionSource: No active session.
+2026-01-06 20:25:24.875: MediaSessionSource: OnCurrentSessionChanged fired.
+2026-01-06 20:25:24.876: MediaSessionSource: Updating Session -> Chrome

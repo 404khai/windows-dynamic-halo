@@ -5,6 +5,8 @@ using Windows.Media.Control;
 using Windows.Storage.Streams;
 using System.IO;
 using System.Windows.Media.Imaging;
+using WindowsDynamicHalo.Core;
+using System.Windows.Threading;
 
 namespace WindowsDynamicHalo.Sources
 {
@@ -23,30 +25,75 @@ namespace WindowsDynamicHalo.Sources
     {
         private GlobalSystemMediaTransportControlsSessionManager? _sessionManager;
         private GlobalSystemMediaTransportControlsSession? _currentSession;
+        private DispatcherTimer _pollTimer;
 
         public event EventHandler<MediaInfo>? MediaInfoChanged;
 
+        public MediaSessionSource()
+        {
+            _pollTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(3)
+            };
+            _pollTimer.Tick += OnPollTimerTick;
+            _pollTimer.Start();
+        }
+
+        private void OnPollTimerTick(object? sender, EventArgs e)
+        {
+            // Fallback: If no session, or just to ensure we are in sync, check session manager
+            if (_sessionManager != null)
+            {
+                var current = _sessionManager.GetCurrentSession();
+                if (current != null && (_currentSession == null || current.SourceAppUserModelId != _currentSession.SourceAppUserModelId))
+                {
+                    Logger.Log($"Poll: Detected new session: {current.SourceAppUserModelId}");
+                    UpdateSession(current);
+                }
+                else if (_currentSession != null)
+                {
+                    // Force update periodically if we have a session, just in case events missed
+                    _ = UpdateMediaInfoAsync();
+                }
+            }
+            else
+            {
+                // Try re-requesting manager if it failed initially
+                 _ = InitializeAsync();
+            }
+        }
+
         public async Task InitializeAsync()
         {
+            if (_sessionManager != null) return;
+
             try
             {
+                Logger.Log("MediaSessionSource: Requesting SessionManager...");
                 // Request the session manager from Windows
                 _sessionManager = await GlobalSystemMediaTransportControlsSessionManager.RequestAsync();
                 
                 if (_sessionManager != null)
                 {
+                    Logger.Log("MediaSessionSource: SessionManager acquired.");
                     _sessionManager.CurrentSessionChanged += OnCurrentSessionChanged;
                     UpdateSession(_sessionManager.GetCurrentSession());
+                }
+                else
+                {
+                    Logger.Log("MediaSessionSource: SessionManager returned NULL.");
                 }
             }
             catch (Exception ex)
             {
+                Logger.Log($"MediaSessionSource Init Failed: {ex.Message}");
                 Debug.WriteLine($"MediaSessionSource Init Failed: {ex.Message}");
             }
         }
 
         private void OnCurrentSessionChanged(GlobalSystemMediaTransportControlsSessionManager sender, CurrentSessionChangedEventArgs args)
         {
+            Logger.Log("MediaSessionSource: OnCurrentSessionChanged fired.");
             UpdateSession(sender.GetCurrentSession());
         }
 
@@ -55,15 +102,20 @@ namespace WindowsDynamicHalo.Sources
             // Unsubscribe from old session events
             if (_currentSession != null)
             {
-                _currentSession.MediaPropertiesChanged -= OnMediaPropertiesChanged;
-                _currentSession.PlaybackInfoChanged -= OnPlaybackInfoChanged;
-                _currentSession.TimelinePropertiesChanged -= OnTimelinePropertiesChanged;
+                try
+                {
+                    _currentSession.MediaPropertiesChanged -= OnMediaPropertiesChanged;
+                    _currentSession.PlaybackInfoChanged -= OnPlaybackInfoChanged;
+                    _currentSession.TimelinePropertiesChanged -= OnTimelinePropertiesChanged;
+                }
+                catch { /* Ignore if object is disposed/invalid */ }
             }
 
             _currentSession = session;
 
             if (_currentSession != null)
             {
+                Logger.Log($"MediaSessionSource: Updating Session -> {_currentSession.SourceAppUserModelId}");
                 // Subscribe to new session events
                 _currentSession.MediaPropertiesChanged += OnMediaPropertiesChanged;
                 _currentSession.PlaybackInfoChanged += OnPlaybackInfoChanged;
@@ -74,6 +126,7 @@ namespace WindowsDynamicHalo.Sources
             }
             else
             {
+                 Logger.Log("MediaSessionSource: No active session.");
                  // No active session
                  MediaInfoChanged?.Invoke(this, new MediaInfo { IsPlaying = false });
             }
@@ -96,18 +149,25 @@ namespace WindowsDynamicHalo.Sources
 
         private async Task UpdateMediaInfoAsync()
         {
-            if (_currentSession == null) return;
+            if (_currentSession == null) 
+            {
+                Logger.Log("UpdateMediaInfoAsync: _currentSession is null. Aborting.");
+                return;
+            }
 
             try
             {
+                Logger.Log("UpdateMediaInfoAsync: Fetching info...");
                 var info = _currentSession.GetPlaybackInfo();
                 var props = await _currentSession.TryGetMediaPropertiesAsync();
                 var timeline = _currentSession.GetTimelineProperties();
 
                 bool isPlaying = info.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+                Logger.Log($"UpdateMediaInfoAsync: PlaybackStatus={info.PlaybackStatus}, IsPlaying={isPlaying}");
 
                 if (props != null)
                 {
+                    Logger.Log($"UpdateMediaInfoAsync: Props found. Title='{props.Title}', Artist='{props.Artist}'");
                     byte[]? artBytes = null;
                     try
                     {
@@ -119,11 +179,16 @@ namespace WindowsDynamicHalo.Sources
                             using var ms = new MemoryStream();
                             await netStream.CopyToAsync(ms);
                             artBytes = ms.ToArray();
+                            Logger.Log($"UpdateMediaInfoAsync: Thumbnail loaded ({artBytes.Length} bytes).");
+                        }
+                        else
+                        {
+                            Logger.Log("UpdateMediaInfoAsync: Thumbnail is null.");
                         }
                     }
                     catch (Exception exThumb)
                     {
-                        Debug.WriteLine($"Thumbnail read failed: {exThumb.Message}");
+                        Logger.Log($"Thumbnail read failed: {exThumb.Message}");
                     }
 
                     MediaInfoChanged?.Invoke(this, new MediaInfo
@@ -139,20 +204,27 @@ namespace WindowsDynamicHalo.Sources
                 }
                 else
                 {
+                    Logger.Log("UpdateMediaInfoAsync: Props are null. Retrying once...");
                     // Retry once if props are null but session exists
                     await Task.Delay(100);
                     props = await _currentSession.TryGetMediaPropertiesAsync();
                     if (props != null)
                     {
+                         Logger.Log($"UpdateMediaInfoAsync: Retry success. Title='{props.Title}'");
                          // Recursively call or handle here? simpler to just proceed
                          // For now, if still null, we just send playing status
                          MediaInfoChanged?.Invoke(this, new MediaInfo { IsPlaying = isPlaying });
+                    }
+                    else
+                    {
+                        Logger.Log("UpdateMediaInfoAsync: Retry failed. Props still null.");
+                        MediaInfoChanged?.Invoke(this, new MediaInfo { IsPlaying = isPlaying });
                     }
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"UpdateMediaInfo Failed: {ex.Message}");
+                Logger.Log($"UpdateMediaInfo Failed: {ex.Message}");
             }
         }
 
