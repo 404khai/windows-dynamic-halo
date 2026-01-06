@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:WindowsDynamicHalo.ViewModels"
+        xmlns:uc="clr-namespace:WindowsDynamicHalo.UI.Controls"
         mc:Ignorable="d"
         Title="Dynamic Island"
         Height="{Binding Height}" 
@@ -20,10 +21,15 @@
         <vm:IslandViewModel />
     </Window.DataContext>
 
-    <Border Background="Black" 
+    <Border x:Name="RootBorder" Background="Black" 
             CornerRadius="17"
             HorizontalAlignment="Stretch" 
-            VerticalAlignment="Stretch">
+            VerticalAlignment="Stretch"
+            RenderTransformOrigin="0.5,0.5">
+        <Border.RenderTransform>
+            <ScaleTransform ScaleX="1" ScaleY="1"/>
+        </Border.RenderTransform>
+
         <Grid>
             <!-- Media State -->
             <Grid Visibility="{Binding HasMedia, Converter={StaticResource BoolToVis}}">
@@ -33,26 +39,68 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 
-                <!-- Placeholder Art -->
-                <Image Source="/Assets/placeholder.png" 
-                       Width="30" Height="30" 
-                       Margin="15,0,0,0"
-                       VerticalAlignment="Center"/>
+                <!-- Album Art with fade/scale on change -->
+                <Grid Margin="12,0,0,0" VerticalAlignment="Center">
+                    <Border Width="36" Height="36" CornerRadius="6" Background="#222">
+                        <Border.Effect>
+                            <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="#55000000"/>
+                        </Border.Effect>
+                        <Image x:Name="AlbumArt"
+                               Source="{Binding Media.AlbumArt}"
+                               Stretch="UniformToFill"
+                               ClipToBounds="True"/>
+                    </Border>
+                    <Grid.Triggers>
+                        <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="AlbumArt"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     From="0" To="1"
+                                                     Duration="0:0:0.20"
+                                                     EasingFunction="{x:Static QuadraticEase.Out}"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                     Storyboard.TargetName="AlbumArt"
+                                                     From="0.94" To="1.0"
+                                                     Duration="0:0:0.20">
+                                        <DoubleAnimation.EasingFunction>
+                                            <CubicEase EasingMode="EaseOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                     Storyboard.TargetName="AlbumArt"
+                                                     From="0.94" To="1.0"
+                                                     Duration="0:0:0.20">
+                                        <DoubleAnimation.EasingFunction>
+                                            <CubicEase EasingMode="EaseOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Grid.Triggers>
+                    <Grid.RenderTransform>
+                        <ScaleTransform/>
+                    </Grid.RenderTransform>
+                </Grid>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
                     <TextBlock Text="{Binding Title}" Foreground="White" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="{Binding Artist}" Foreground="#AAAAAA" FontSize="11" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
                 
-                <!-- Animated Visualizer (Fake) -->
+                <!-- Controls + Visualizer -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,15,0" VerticalAlignment="Center">
-                    <Border Width="3" Height="10" Background="#33FF33" CornerRadius="1" Margin="1"/>
-                    <Border Width="3" Height="18" Background="#33FF33" CornerRadius="1" Margin="1"/>
-                    <Border Width="3" Height="8" Background="#33FF33" CornerRadius="1" Margin="1"/>
+                    <uc:Visualizer IsActive="{Binding Media.IsPlaying}" Margin="0,0,8,0"/>
+                    <uc:MediaControls/>
                 </StackPanel>
             </Grid>
             
             <!-- Idle State (Implicitly visible if Media State is Collapsed, but since we just have a black border, it looks like a dot/pill) -->
+            <Button Command="{Binding ToggleExpandCommand}"
+                    Background="Transparent" BorderThickness="0"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    Opacity="0"/>
         </Grid>
     </Border>
 </Window>

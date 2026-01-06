@@ -1,20 +1,24 @@
-using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using WindowsDynamicHalo.Core;
 using WindowsDynamicHalo.Sources;
+using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace WindowsDynamicHalo.ViewModels
 {
     public class IslandViewModel : INotifyPropertyChanged
     {
         private readonly MediaSessionSource _mediaSource;
+        private readonly AnimationState _animState = new AnimationState();
+        private readonly DispatcherTimer _autoCollapseTimer;
         private string _title = "Idle";
         private string _artist = "";
         private bool _hasMedia = false;
-        private double _width = 120; // Default idle width
-        private double _height = 35; // Default idle height
+        private bool _isExpanded = false;
+        private double _width = 120; // Collapsed width
+        private double _height = 35; // Collapsed height
 
         public IslandViewModel()
         {
@@ -23,6 +27,27 @@ namespace WindowsDynamicHalo.ViewModels
             
             // Initialize Async
             _ = _mediaSource.InitializeAsync();
+
+            Media = new MediaViewModel(_mediaSource);
+
+            ToggleExpandCommand = new DelegateCommand(() =>
+            {
+                IsExpanded = !IsExpanded;
+                Touch();
+            });
+
+            _autoCollapseTimer = new DispatcherTimer
+            {
+                Interval = System.TimeSpan.FromSeconds(5)
+            };
+            _autoCollapseTimer.Tick += (s, e) =>
+            {
+                if ((System.DateTime.UtcNow - _animState.LastInteractionUtc).TotalSeconds >= 5 && IsExpanded)
+                {
+                    IsExpanded = false;
+                }
+            };
+            _autoCollapseTimer.Start();
         }
 
         public string Title
@@ -48,6 +73,22 @@ namespace WindowsDynamicHalo.ViewModels
             }
         }
 
+        public bool IsExpanded
+        {
+            get => _isExpanded;
+            set
+            {
+                _isExpanded = value;
+                _animState.IsExpanded = value;
+                OnPropertyChanged();
+                UpdateDimensions();
+            }
+        }
+
+        public MediaViewModel Media { get; }
+
+        public ICommand ToggleExpandCommand { get; }
+
         public double Width
         {
             get => _width;
@@ -62,7 +103,7 @@ namespace WindowsDynamicHalo.ViewModels
 
         private void UpdateDimensions()
         {
-            if (HasMedia)
+            if (HasMedia || IsExpanded)
             {
                 Width = 350; // Expanded for media
                 Height = 80;
@@ -86,6 +127,7 @@ namespace WindowsDynamicHalo.ViewModels
                     Title = e.Title;
                     Artist = e.Artist;
                     HasMedia = true;
+                    Touch();
                 }
                 else
                 {
@@ -94,6 +136,11 @@ namespace WindowsDynamicHalo.ViewModels
                     HasMedia = false;
                 }
             });
+        }
+
+        private void Touch()
+        {
+            _animState.LastInteractionUtc = System.DateTime.UtcNow;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
