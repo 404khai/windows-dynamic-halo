@@ -30,6 +30,8 @@ namespace WindowsDynamicHalo.ViewModels
             _mediaSource = source;
             _mediaSource.MediaInfoChanged += OnMediaInfoChanged;
             PlayPauseCommand = new DelegateCommand(async () => await TogglePlayPauseAsync());
+            SkipNextCommand = new DelegateCommand(async () => await _mediaSource.TrySkipNextAsync());
+            SkipPreviousCommand = new DelegateCommand(async () => await _mediaSource.TrySkipPreviousAsync());
         }
 
         public string Title { get => _title; private set { _title = value; OnPropertyChanged(); } }
@@ -87,6 +89,8 @@ namespace WindowsDynamicHalo.ViewModels
         }
 
         public ICommand PlayPauseCommand { get; }
+        public ICommand SkipNextCommand { get; }
+        public ICommand SkipPreviousCommand { get; }
 
         public async Task SeekToAsync(double seconds)
         {

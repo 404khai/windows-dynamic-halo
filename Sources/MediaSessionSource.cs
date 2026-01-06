@@ -167,5 +167,21 @@ namespace WindowsDynamicHalo.Sources
                 try { await _currentSession.TryChangePlaybackPositionAsync(position.Ticks); } catch (Exception ex) { Debug.WriteLine($"TrySeekAsync failed: {ex.Message}"); }
             }
         }
+
+        public async Task TrySkipNextAsync()
+        {
+            if (_currentSession != null)
+            {
+                try { await _currentSession.TrySkipNextAsync(); } catch (Exception ex) { Debug.WriteLine($"TrySkipNextAsync failed: {ex.Message}"); }
+            }
+        }
+
+        public async Task TrySkipPreviousAsync()
+        {
+            if (_currentSession != null)
+            {
+                try { await _currentSession.TrySkipPreviousAsync(); } catch (Exception ex) { Debug.WriteLine($"TrySkipPreviousAsync failed: {ex.Message}"); }
+            }
+        }
     }
 }
