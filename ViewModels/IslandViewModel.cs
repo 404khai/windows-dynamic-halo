@@ -17,7 +17,7 @@ namespace WindowsDynamicHalo.ViewModels
         private string _artist = "";
         private bool _hasMedia = false;
         private bool _isExpanded = false;
-        private double _width = 120; // Collapsed width
+        private double _width = 50; // Collapsed width
         private double _height = 35; // Collapsed height
 
         public IslandViewModel()
@@ -111,7 +111,7 @@ namespace WindowsDynamicHalo.ViewModels
             }
             else
             {
-                Width = 120; // Compact pill
+                Width = 50; // Compact pill
                 Height = 35;
                 StateManager.Instance.SetMode(IslandMode.Idle);
             }

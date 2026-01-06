@@ -7,8 +7,8 @@
         xmlns:uc="clr-namespace:WindowsDynamicHalo.UI.Controls"
         mc:Ignorable="d"
         Title="Dynamic Island"
-        Height="{Binding Height}" 
-        Width="{Binding Width}"
+        Height="35" 
+        Width="70"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -57,8 +57,11 @@
                                     <DoubleAnimation Storyboard.TargetName="AlbumArt"
                                                      Storyboard.TargetProperty="Opacity"
                                                      From="0" To="1"
-                                                     Duration="0:0:0.20"
-                                                     EasingFunction="{x:Static QuadraticEase.Out}"/>
+                                                     Duration="0:0:0.20">
+                                        <DoubleAnimation.EasingFunction>
+                                            <QuadraticEase EasingMode="EaseOut"/>
+                                        </DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
                                     <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
                                                      Storyboard.TargetName="AlbumArt"
                                                      From="0.94" To="1.0"
