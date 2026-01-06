@@ -78,7 +78,7 @@
                     Opacity="0" Panel.ZIndex="0"/>
 
             <!-- Compact Media State -->
-            <Grid x:Name="CompactState" VerticalAlignment="Center" IsHitTestVisible="False"
+            <Grid x:Name="CompactState" VerticalAlignment="Center"
                   Opacity="0" Visibility="Collapsed">
                 
                 <Grid.ColumnDefinitions>
@@ -87,6 +87,15 @@
                     <ColumnDefinition Width="Auto"/> <!-- Controls -->
                     <ColumnDefinition Width="Auto"/> <!-- Vis -->
                 </Grid.ColumnDefinitions>
+
+                <!-- Background Expand Button -->
+                <Button Grid.ColumnSpan="4"
+                        Command="{Binding ToggleExpandCommand}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Panel.ZIndex="-1"/>
                 
                 <!-- Small Album Art -->
                 <Border Margin="6,0,0,0" Width="36" Height="36" CornerRadius="18" Background="#222">
