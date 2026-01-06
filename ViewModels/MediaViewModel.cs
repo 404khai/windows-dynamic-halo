@@ -21,6 +21,10 @@ namespace WindowsDynamicHalo.ViewModels
         private bool _isPlaying = false;
         private ImageSource? _albumArt;
 
+        private TimeSpan _duration = TimeSpan.Zero;
+        private TimeSpan _position = TimeSpan.Zero;
+        private bool _isDragging = false;
+
         public MediaViewModel(MediaSessionSource source)
         {
             _mediaSource = source;
@@ -32,8 +36,62 @@ namespace WindowsDynamicHalo.ViewModels
         public string Artist { get => _artist; private set { _artist = value; OnPropertyChanged(); } }
         public bool IsPlaying { get => _isPlaying; private set { _isPlaying = value; OnPropertyChanged(); } }
         public ImageSource? AlbumArt { get => _albumArt; private set { _albumArt = value; OnPropertyChanged(); } }
+        
+        public TimeSpan Duration 
+        { 
+            get => _duration; 
+            private set 
+            { 
+                _duration = value; 
+                OnPropertyChanged(); 
+                OnPropertyChanged(nameof(TotalDurationSeconds));
+            } 
+        }
+
+        public TimeSpan Position 
+        { 
+            get => _position; 
+            private set 
+            { 
+                _position = value; 
+                OnPropertyChanged(); 
+                if (!_isDragging)
+                {
+                    OnPropertyChanged(nameof(CurrentPositionSeconds));
+                }
+            } 
+        }
+
+        public double TotalDurationSeconds => Duration.TotalSeconds;
+
+        public double CurrentPositionSeconds
+        {
+            get => Position.TotalSeconds;
+            set
+            {
+                // This setter is called by UI binding (TwoWay)
+                if (!_isDragging)
+                {
+                    // If not dragging, we might want to seek immediately or ignore if it's just a small update
+                    // But typically we use Drag events to control this.
+                    // For now, let's allow immediate seek if it's a direct set (e.g. click on track)
+                     _ = SeekToAsync(value);
+                }
+            }
+        }
+
+        public bool IsDragging
+        {
+            get => _isDragging;
+            set => _isDragging = value;
+        }
 
         public ICommand PlayPauseCommand { get; }
+
+        public async Task SeekToAsync(double seconds)
+        {
+            await _mediaSource.TrySeekAsync(TimeSpan.FromSeconds(seconds));
+        }
 
         private async Task TogglePlayPauseAsync()
         {
@@ -46,6 +104,8 @@ namespace WindowsDynamicHalo.ViewModels
             Title = e.Title;
             Artist = e.Artist;
             IsPlaying = e.IsPlaying;
+            Duration = e.Duration;
+            Position = e.Position;
 
             if (e.AlbumArtBytes != null && e.AlbumArtBytes.Length > 0)
             {

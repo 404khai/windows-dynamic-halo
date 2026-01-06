@@ -31,8 +31,20 @@
         </Border.RenderTransform>
 
         <Grid>
-            <!-- Media State -->
-            <Grid Visibility="{Binding HasMedia, Converter={StaticResource BoolToVis}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Background Click Target (Toggle Expand) -->
+            <Button Grid.Row="0" Grid.RowSpan="2"
+                    Command="{Binding ToggleExpandCommand}"
+                    Background="Transparent" BorderThickness="0"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    Opacity="0"/>
+
+            <!-- Media State (Compact View) -->
+            <Grid Grid.Row="0" Visibility="{Binding HasMedia, Converter={StaticResource BoolToVis}}" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -87,23 +99,41 @@
                     </Grid.RenderTransform>
                 </Grid>
 
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0" IsHitTestVisible="False"
+                            Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
                     <TextBlock Text="{Binding Title}" Foreground="White" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="{Binding Artist}" Foreground="#AAAAAA" FontSize="11" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
                 
                 <!-- Controls + Visualizer -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,15,0" VerticalAlignment="Center">
-                    <uc:Visualizer IsActive="{Binding Media.IsPlaying}" Margin="0,0,8,0"/>
-                    <uc:MediaControls/>
+                    <uc:MediaControls Margin="0,0,8,0" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}"/>
+                    <uc:Visualizer IsActive="{Binding Media.IsPlaying}"/>
                 </StackPanel>
             </Grid>
             
-            <!-- Idle State (Implicitly visible if Media State is Collapsed, but since we just have a black border, it looks like a dot/pill) -->
-            <Button Command="{Binding ToggleExpandCommand}"
-                    Background="Transparent" BorderThickness="0"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                    Opacity="0"/>
+            <!-- Expanded State: Seek Slider -->
+            <Grid Grid.Row="1" Margin="20,0,20,15" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                 <Grid.ColumnDefinitions>
+                     <ColumnDefinition Width="Auto"/>
+                     <ColumnDefinition Width="*"/>
+                     <ColumnDefinition Width="Auto"/>
+                 </Grid.ColumnDefinitions>
+                 
+                 <TextBlock Text="{Binding Media.Position, StringFormat={}{0:mm\\:ss}}" Foreground="#888" FontSize="10" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                 
+                 <Slider Grid.Column="1"
+                         Minimum="0" 
+                         Maximum="{Binding Media.TotalDurationSeconds, Mode=OneWay}" 
+                         Value="{Binding Media.CurrentPositionSeconds, Mode=TwoWay}"
+                         Thumb.DragStarted="OnSliderDragStarted"
+                         Thumb.DragCompleted="OnSliderDragCompleted"
+                         VerticalAlignment="Center"
+                         IsMoveToPointEnabled="True"
+                         Margin="0,0,0,0"/>
+
+                 <TextBlock Grid.Column="2" Text="{Binding Media.Duration, StringFormat={}{0:mm\\:ss}}" Foreground="#888" FontSize="10" VerticalAlignment="Center" Margin="8,0,0,0"/>
+            </Grid>
         </Grid>
     </Border>
 </Window>

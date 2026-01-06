@@ -62,5 +62,25 @@ namespace WindowsDynamicHalo.UI
                 borderSb.Begin(RootBorder);
             }
         }
+
+        private void OnSliderDragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e)
+        {
+            if (DataContext is IslandViewModel vm)
+            {
+                vm.Media.IsDragging = true;
+            }
+        }
+
+        private void OnSliderDragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            if (DataContext is IslandViewModel vm)
+            {
+                vm.Media.IsDragging = false;
+                if (sender is System.Windows.Controls.Slider slider)
+                {
+                    vm.Media.CurrentPositionSeconds = slider.Value;
+                }
+            }
+        }
     }
 }
