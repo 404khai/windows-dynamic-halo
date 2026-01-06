@@ -15,11 +15,16 @@ namespace WindowsDynamicHalo.UI
             this.DataContextChanged += OnDataContextChanged;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             // Ensure initial position is correct
             UpdateLayout();
             UpdatePosition();
+
+            if (DataContext is IslandViewModel vm)
+            {
+                await vm.InitializeAsync();
+            }
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)

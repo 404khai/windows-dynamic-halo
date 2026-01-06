@@ -25,9 +25,6 @@ namespace WindowsDynamicHalo.ViewModels
             _mediaSource = new MediaSessionSource();
             _mediaSource.MediaInfoChanged += OnMediaInfoChanged;
             
-            // Initialize Async
-            _ = _mediaSource.InitializeAsync();
-
             Media = new MediaViewModel(_mediaSource);
 
             ToggleExpandCommand = new DelegateCommand(() =>
@@ -51,6 +48,11 @@ namespace WindowsDynamicHalo.ViewModels
                 }
             };
             _autoCollapseTimer.Start();
+        }
+
+        public async Task InitializeAsync()
+        {
+            await _mediaSource.InitializeAsync();
         }
 
         public string Title

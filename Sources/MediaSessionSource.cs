@@ -121,7 +121,7 @@ namespace WindowsDynamicHalo.Sources
                             artBytes = ms.ToArray();
                         }
                     }
-                    catch (System.Exception exThumb)
+                    catch (Exception exThumb)
                     {
                         Debug.WriteLine($"Thumbnail read failed: {exThumb.Message}");
                     }
@@ -132,10 +132,22 @@ namespace WindowsDynamicHalo.Sources
                         Artist = props.Artist,
                         IsPlaying = isPlaying,
                         AlbumArtBytes = artBytes,
-                        Duration = timeline.EndTime,
-                        Position = timeline.Position,
+                        Duration = timeline?.EndTime ?? TimeSpan.Zero,
+                        Position = timeline?.Position ?? TimeSpan.Zero,
                         LastUpdated = DateTime.UtcNow
                     });
+                }
+                else
+                {
+                    // Retry once if props are null but session exists
+                    await Task.Delay(100);
+                    props = await _currentSession.TryGetMediaPropertiesAsync();
+                    if (props != null)
+                    {
+                         // Recursively call or handle here? simpler to just proceed
+                         // For now, if still null, we just send playing status
+                         MediaInfoChanged?.Invoke(this, new MediaInfo { IsPlaying = isPlaying });
+                    }
                 }
             }
             catch (Exception ex)
